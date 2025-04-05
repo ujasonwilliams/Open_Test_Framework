@@ -1,44 +1,33 @@
 import logging
+import os
 
-def setup_logger(log_file="framework.log", log_level=logging.DEBUG):
-    """
-    Sets up a logger that includes the current file name and line number in log messages.
-    Args:
-        log_file (str): The file where logs will be written.
-        log_level (int): The logging level (e.g., logging.DEBUG, logging.INFO).
-    Returns:
-        logging.Logger: Configured logger instance.
-    """
-    # Create a logger
-    logger = logging.getLogger("FrameworkLogger")
-    logger.setLevel(log_level)
+class CustomLogger:
+    def __init__(self, log_file_name):
+        """
+        Initializes the logger with the specified log file name.
 
-    # Create a file handler to write logs to a file
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(log_level)
+        Args:
+            log_file_name (str): The name of the log file where logs will be written.
+        """
+        # Ensure the directory for the log file exists
+        log_dir = os.path.dirname(log_file_name)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir)
 
-    # Create a console handler to output logs to the console
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(log_level)
+        # Configure the logger
+        logging.basicConfig(
+            filename=log_file_name,
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - [%(module)s:%(lineno)d] - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        self.logger = logging.getLogger(__name__)
 
-    # Define the log format to include file name and line number
-    formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
-    )
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+    def get_logger(self):
+        """
+        Returns the logger instance.
 
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-
-    return logger
-
-# Example usage
-if __name__ == "__main__":
-    logger = setup_logger()
-    logger.debug("This is a debug message.")
-    logger.info("This is an info message.")
-    logger.warning("This is a warning message.")
-    logger.error("This is an error message.")
-    logger.critical("This is a critical message.")
+        Returns:
+            logging.Logger: The configured logger instance.
+        """
+        return self.logger

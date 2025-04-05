@@ -129,3 +129,28 @@ def generate_system_report(file_path):
     except Exception as e:
         return f"An unexpected error occurred: {e}"
 
+def scan_for_video_files(folder_path):
+    """
+    Scans the specified folder for .mkv, .mp4, and .mpg files and returns them as an array.
+    
+    Args:
+        folder_path (str): The path to the folder to scan.
+    
+    Returns:
+        list: A list of file paths for all .mkv, .mp4, and .mpg files found in the folder.
+    """
+    # Supported video file extensions
+    video_extensions = {".mkv", ".mp4", ".mpg"}
+    video_files = []
+
+    try:
+        # Walk through the folder and its subdirectories
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                # Check if the file has a supported video extension
+                if os.path.splitext(file)[1].lower() in video_extensions:
+                    video_files.append(os.path.join(root, file))
+        return video_files
+    except Exception as e:
+        print(f"An error occurred while scanning for video files: {e}")
+        return []
