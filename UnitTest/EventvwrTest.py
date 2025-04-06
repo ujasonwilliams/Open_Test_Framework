@@ -6,7 +6,8 @@ import xml.etree.ElementTree as ET
 class TestFunctionLibrary(unittest.TestCase):
     @patch("os.path.exists")
     @patch("builtins.open", new_callable=mock_open, read_data="<root><event>Test Event</event></root>")
-    def test_get_event_log_data_valid_file(self, mock_file, mock_exists):
+    @patch("builtins.print")  # Mock the print function to suppress output
+    def test_get_event_log_data_valid_file(self, mock_print, mock_file, mock_exists):
         """
         Test that get_event_log_data successfully parses a valid XML file.
         """
@@ -21,7 +22,8 @@ class TestFunctionLibrary(unittest.TestCase):
         self.assertIsInstance(result["root"], ET.Element, "The 'root' key should contain an XML Element.")
 
     @patch("os.path.exists")
-    def test_get_event_log_data_file_not_found(self, mock_exists):
+    @patch("builtins.print")  # Mock the print function to suppress output
+    def test_get_event_log_data_file_not_found(self, mock_print, mock_exists):
         """
         Test that get_event_log_data returns an error message when the file does not exist.
         """
@@ -36,7 +38,8 @@ class TestFunctionLibrary(unittest.TestCase):
 
     @patch("os.path.exists")
     @patch("builtins.open", new_callable=mock_open, read_data="<root><event>Test Event</event>")
-    def test_get_event_log_data_invalid_xml(self, mock_file, mock_exists):
+    @patch("builtins.print")  # Mock the print function to suppress output
+    def test_get_event_log_data_invalid_xml(self, mock_print, mock_file, mock_exists):
         """
         Test that get_event_log_data returns an error message when the XML file is invalid.
         """
