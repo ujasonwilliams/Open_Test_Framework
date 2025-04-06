@@ -28,7 +28,7 @@ class TestFunctionLibrary(unittest.TestCase):
         self.assertIsNotNone(serial_number, "The BIOS serial number should not be null.")
         self.assertNotEqual(serial_number.strip(), "", "The BIOS serial number should not be empty.")
 
-        # Assert that the function completes within 500ms
+        # Assert that the function completes within 1000ms
         elapsed_time = (end_time - start_time) * 1000  # Convert to milliseconds
         self.assertLessEqual(elapsed_time, 1000, f"The function took too long to execute: {elapsed_time}ms")
 
