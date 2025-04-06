@@ -1,31 +1,15 @@
 import subprocess
 import os
+import threading
 from Library.FrameworkLogging import CustomLogger
 from Library.FunctionLibrary import scan_for_video_files
+from Library.Capture import capture_window_still  # Import the capture function
 import time
 
 def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overlay=False, start_time=None, stop_time=None,
                            server_port=None, iface=None, iface_addr=None, mtu=None, ipv6=False, ipv4=False, max_screen=None):
     """
     Launches VLC Media Player with the specified options and plays the given file.
-    
-    Args:
-        file_path (str): The path to the media file to be played.
-        no_video (bool): Disable video output.
-        grayscale (bool): Enable grayscale video output.
-        no_overlay (bool): Disable overlay.
-        start_time (int): Start time in seconds.
-        stop_time (int): Stop time in seconds.
-        server_port (int): Server port for streaming.
-        iface (str): Network interface to use.
-        iface_addr (str): Network interface address.
-        mtu (int): Maximum Transmission Unit for streaming.
-        ipv6 (bool): Enable IPv6.
-        ipv4 (bool): Enable IPv4.
-        max_screen: Ensure the screen size is set to max if needed (not a standard VLC option, just an example)
-    
-    Returns:
-        str: Success message if VLC is launched successfully, or an error message if it fails.
     """
     try:
         # Check if the file exists
@@ -96,32 +80,44 @@ def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overla
         logger.debug(f"An unexpected error occurred: {e}")  # Log any other unexpected errors
         return f"An unexpected error occurred: {e}"
 
-# Main script
+def capture_screenshot_async(window_title, output_image):
+    """
+    Captures a screenshot asynchronously after 3 seconds.
+    """
+    def capture():
+        time.sleep(3)  # Wait for 3 seconds
+        capture_result = capture_window_still(window_title, output_image)
+        logger.debug(capture_result)
+        print(capture_result)
+
+    # Start the capture in a separate thread
+    threading.Thread(target=capture).start()
+
 if __name__ == "__main__":
-    LogFileName = "Logging_VLCTester.log"      # initialize logging (optional, if you have FrameworkLogging set up)
-    
+    LogFileName = "Logging_VLCTester.log"  # Initialize logging (optional, if you have FrameworkLogging set up)
+
     # Remove the old log file before starting a test run.
-    if(os.path.exists(LogFileName)):
+    if os.path.exists(LogFileName):
         os.remove(LogFileName)
 
     # Initialize the logger with a specific log file name
     logger = CustomLogger(LogFileName).get_logger()
     logger.debug("Old log file has been deleted.")
-    logger.debug("Starting VLCTester script...")  
-    
+    logger.debug("Starting VLCTester script...")
+
     current_path = os.getcwd()
     # Path to the Media folder
-    media_folder = ("\\Media\\")
+    media_folder = os.path.join(current_path, "Media")  # Use os.path.join to construct the path
     logger.debug(f"Media folder set to: {media_folder}")
 
     # Get the list of video files
-    video_files = scan_for_video_files(current_path + "\\" + media_folder)
-    
+    video_files = scan_for_video_files(media_folder)
+
     # Print the log file names to the debug log for verification
     if video_files:
         logger.debug(f"Video files found: {video_files}")
     else:
-        logger.debug("No video files found in the specified media folder.") 
+        logger.debug("No video files found in the specified media folder.")
 
     # Check if any video files were found
     if not video_files:
@@ -132,17 +128,29 @@ if __name__ == "__main__":
         logger.debug(f"Found {len(video_files)} video files in the folder: {media_folder}")
 
         videoNumber = 1
-        # Play each video for 3 seconds
+        # Play each video for 6 seconds
         for video_file in video_files:
             print(f"Playing video: {video_file}")
             logger.debug(f"Playing video {videoNumber}: {video_file}")
-            videoNumber += 1    
+            videoNumber += 1
+
+            # Construct the VLC window title dynamically
+            window_title = f"{os.path.basename(video_file)} - VLC media player"
+
+            # Construct the output image path
+            output_image = os.path.join(media_folder, f"{os.path.basename(video_file)}_screenshot.jpg")
+
+            # Capture the VLC window screenshot asynchronously
+            capture_screenshot_async(window_title, output_image)
+
+            # Start VLC and play the video
             result = start_vlc_with_options(
                 file_path=video_file,
                 no_video=False,
                 grayscale=False,
                 start_time=0,
-                stop_time=3,  # Play for 3 seconds
+                stop_time=6,  # Play for 6 seconds
                 max_screen=True
             )
+
             print(result)
