@@ -109,12 +109,19 @@ if __name__ == "__main__":
     logger.debug("Old log file has been deleted.")
     logger.debug("Starting VLCTester script...")  
     
+    current_path = os.getcwd()
     # Path to the Media folder
-    media_folder = ("..\\TestFrameWork\\Media\\")
+    media_folder = ("\\Media\\")
     logger.debug(f"Media folder set to: {media_folder}")
 
     # Get the list of video files
-    video_files = scan_for_video_files(media_folder)
+    video_files = scan_for_video_files(current_path + "\\" + media_folder)
+    
+    # Print the log file names to the debug log for verification
+    if video_files:
+        logger.debug(f"Video files found: {video_files}")
+    else:
+        logger.debug("No video files found in the specified media folder.") 
 
     # Check if any video files were found
     if not video_files:
