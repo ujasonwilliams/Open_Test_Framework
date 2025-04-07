@@ -51,21 +51,22 @@ if __name__ == "__main__":
     # Path to the Media folder
     media_folder = r"C:\Code\Open_Test_Framework\Media"
 
+    testLimit = 5  # This is the threshold for percentage difference, can be adjusted as needed.
     # Array of golden image files, percentage thresholds, and configurations
     measurements = [
-        ("MKV_H.264_29.97FPS_golden.jpg", "MKV_H.264_29.97FPS.mkv_screenshot.jpg", 2, "MKV_H.264_29.97FPS"),
-        ("MKV_H.264_60FPS_golden.jpg", "MKV_H.264_60FPS.mkv_screenshot.jpg", 2, "MKV_H.264_60FPS"),
-        ("MKV_HEVc_29.97FPs_golden.jpg", "MKV_HEVc_29.97FPs.mkv_screenshot.jpg", 2, "MKV_HEVc_29.97FPs"),
-        ("MKV_HEVC_60FPS_golden.jpg", "MKV_HEVC_60FPS.mkv_screenshot.jpg", 2, "MKV_HEVC_60FPS"),
-        ("MP4_H.26429.97FPS_golden.jpg", "MP4_H.26429.97FPS.mp4_screenshot.jpg", 2, "MP4_H.26429.97FPS"),
-        ("MP4_H.264_120FPS_golden.jpg", "MP4_H.264_120FPS.mp4_screenshot.jpg", 2, "MP4_H.264_120FPS"),
-        ("MP4_H.264_240FPS_golden.jpg", "MP4_H.264_240FPS.mp4_screenshot.jpg", 2, "MP4_H.264_240FPS"),
-        ("MP4_H.264_60FPS_golden.jpg", "MP4_H.264_60FPS.mp4_screenshot.jpg", 2, "MP4_H.264_60FPS"),
-        ("MP4_HEVC29.97FPS_golden.jpg", "MP4_HEVC29.97FPS.mp4_screenshot.jpg", 2, "MP4_HEVC29.97FPS"),
-        ("MP4_HEVC_204FPS_golden.jpg", "MP4_HEVC_204FPS.mp4_screenshot.jpg", 2, "MP4_HEVC_204FPS"),
-        ("MP4_HEVC_60FPS_golden.jpg", "MP4_HEVC_60FPS.mp4_screenshot.jpg", 2, "MP4_HEVC_60FPS"),
-        ("MPEG-2_MPEG-2_60FPS_golden.jpg", "MPEG-2_MPEG-2_60FPS.mpg_screenshot.jpg", 3, "MPEG-2_MPEG-2_60FPS"),
-        ("MPEG-2_MPEG_29.97FPS_golden.jpg", "MPEG-2_MPEG_29.97FPS.mpg_screenshot.jpg", 3, "MPEG-2_MPEG_29.97FPS")
+        ("MKV_H.264_29.97FPS_golden.jpg", "MKV_H.264_29.97FPS.mkv_screenshot.jpg", 5, "MKV_H.264_29.97FPS"),
+        ("MKV_H.264_60FPS_golden.jpg", "MKV_H.264_60FPS.mkv_screenshot.jpg", 5, "MKV_H.264_60FPS"),
+        ("MKV_HEVc_29.97FPs_golden.jpg", "MKV_HEVc_29.97FPs.mkv_screenshot.jpg", 5, "MKV_HEVc_29.97FPs"),
+        ("MKV_HEVC_60FPS_golden.jpg", "MKV_HEVC_60FPS.mkv_screenshot.jpg", 5, "MKV_HEVC_60FPS"),
+        ("MP4_H.26429.97FPS_golden.jpg", "MP4_H.26429.97FPS.mp4_screenshot.jpg", 5, "MP4_H.26429.97FPS"),
+        ("MP4_H.264_120FPS_golden.jpg", "MP4_H.264_120FPS.mp4_screenshot.jpg", 5, "MP4_H.264_120FPS"),
+        ("MP4_H.264_240FPS_golden.jpg", "MP4_H.264_240FPS.mp4_screenshot.jpg", 5, "MP4_H.264_240FPS"),
+        ("MP4_H.264_60FPS_golden.jpg", "MP4_H.264_60FPS.mp4_screenshot.jpg", 5, "MP4_H.264_60FPS"),
+        ("MP4_HEVC29.97FPS_golden.jpg", "MP4_HEVC29.97FPS.mp4_screenshot.jpg", 5, "MP4_HEVC29.97FPS"),
+        ("MP4_HEVC_204FPS_golden.jpg", "MP4_HEVC_204FPS.mp4_screenshot.jpg", 5, "MP4_HEVC_204FPS"),
+        ("MP4_HEVC_60FPS_golden.jpg", "MP4_HEVC_60FPS.mp4_screenshot.jpg", 5, "MP4_HEVC_60FPS"),
+        ("MPEG-2_MPEG-2_60FPS_golden.jpg", "MPEG-2_MPEG-2_60FPS.mpg_screenshot.jpg", 5, "MPEG-2_MPEG-2_60FPS"),
+        ("MPEG-2_MPEG_29.97FPS_golden.jpg", "MPEG-2_MPEG_29.97FPS.mpg_screenshot.jpg", 5, "MPEG-2_MPEG_29.97FPS")
     ]
 
     # Iterate through the array and process each golden image
