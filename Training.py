@@ -6,31 +6,12 @@ from Library.FunctionLibrary import scan_for_video_files
 from Library.Capture import capture_window_still  # Import the capture function
 import time
 
-def call_image_compare():
-    """
-    Calls the ImageCompare.py script after all videos have been processed.
-    """
-    try:
-        # Path to the ImageCompare.py script
-        image_compare_script = os.path.join(os.getcwd(), "Library", "ImageCompare.py")
-
-        # Run the script using subprocess
-        result = subprocess.run(["python", image_compare_script], capture_output=True, text=True)
-
-        # Log the output and errors
-        if result.returncode == 0:
-            print("ImageCompare.py executed successfully.")
-            print(result.stdout)
-        else:
-            print("Error occurred while executing ImageCompare.py.")
-            print(result.stderr)
-    except Exception as e:
-        print(f"An error occurred while calling ImageCompare.py: {e}")
-
 def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overlay=False, start_time=None, stop_time=None,
                            server_port=None, iface=None, iface_addr=None, mtu=None, ipv6=False, ipv4=False, max_screen=None):
     """
     Launches VLC Media Player with the specified options and plays the given file.
+
+    Note: The script requires you to not interact with the system otherqwise it may interfere with identifying the VLC window for screenshot capture.
     """
     try:
         # Check if the file exists
@@ -52,7 +33,7 @@ def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overla
         # Add optional parameters
         if no_video:
             command.append("--no-video")
-        if grayscale is not None:
+        if grayscale:
             command.append("--grayscale")
         if no_overlay:
             command.append("--nooverlay")
@@ -60,18 +41,6 @@ def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overla
             command.extend(["--start-time", str(start_time)])
         if stop_time is not None:
             command.extend(["--stop-time", str(stop_time)])
-        if server_port is not None:
-            command.extend(["--server-port", str(server_port)])
-        if iface is not None:
-            command.extend(["--iface", iface])
-        if iface_addr is not None:
-            command.extend(["--iface-addr", iface_addr])
-        if mtu is not None:
-            command.extend(["--mtu", str(mtu)])
-        if ipv6:
-            command.append("--ipv6")
-        if ipv4:
-            command.append("--ipv4")
         if max_screen is not None:
             command.append("--fullscreen")
 
@@ -95,10 +64,10 @@ def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overla
         logger.debug(f"VLC Media Player finished playing file: {file_path}")
         return f"VLC Media Player finished playing file: {file_path}"
     except subprocess.CalledProcessError as e:
-        logger.debug(f"Error launching VLC Media Player: {e}")  # Log the error for debugging purposes
+        logger.debug(f"Error launching VLC Media Player: {e}")
         return f"Error launching VLC Media Player: {e}"
     except Exception as e:
-        logger.debug(f"An unexpected error occurred: {e}")  # Log any other unexpected errors
+        logger.debug(f"An unexpected error occurred: {e}")
         return f"An unexpected error occurred: {e}"
 
 def capture_screenshot_async(window_title, output_image):
@@ -115,7 +84,7 @@ def capture_screenshot_async(window_title, output_image):
     threading.Thread(target=capture).start()
 
 if __name__ == "__main__":
-    LogFileName = "Logging_VLCTester.log"  # Initialize logging (optional, if you have FrameworkLogging set up)
+    LogFileName = "Logging_Training.log"  # Initialize logging (optional, if you have FrameworkLogging set up)
 
     # Remove the old log file before starting a test run.
     if os.path.exists(LogFileName):
@@ -124,12 +93,17 @@ if __name__ == "__main__":
     # Initialize the logger with a specific log file name
     logger = CustomLogger(LogFileName).get_logger()
     logger.debug("Old log file has been deleted.")
-    logger.debug("Starting VLCTester script...")
+    logger.debug("Starting Training script...")
 
     current_path = os.getcwd()
     # Path to the Media folder
     media_folder = os.path.join(current_path, "Media")  # Use os.path.join to construct the path
     logger.debug(f"Media folder set to: {media_folder}")
+
+    # Path to the Golden Images folder under the Media folder
+    golden_folder = os.path.join(media_folder, "Golden_Images")
+    os.makedirs(golden_folder, exist_ok=True)
+    logger.debug(f"Golden Images folder set to: {golden_folder}")
 
     # Get the list of video files
     video_files = scan_for_video_files(media_folder)
@@ -148,21 +122,28 @@ if __name__ == "__main__":
         print(f"Found {len(video_files)} video files in the folder: {media_folder}")
         logger.debug(f"Found {len(video_files)} video files in the folder: {media_folder}")
 
-        videoNumber = 1
-        # Play each video for 6 seconds
+        # Process each video file
         for video_file in video_files:
-            print(f"Playing video: {video_file}")
-            logger.debug(f"Playing video {videoNumber}: {video_file}")
-            videoNumber += 1
+            print(f"Processing video: {video_file}")
+            logger.debug(f"Processing video: {video_file}")
+
+            # Extract the video name from the file path
+            video_name = os.path.splitext(os.path.basename(video_file))[0]
+
+            # Run the video once and capture a golden screenshot
+            print(f"Playing video {video_name} to capture golden image")
+            logger.debug(f"Playing video {video_name} to capture golden image")
 
             # Construct the VLC window title dynamically
             window_title = f"{os.path.basename(video_file)} - VLC media player"
+            logger.debug(f"Looking for VLC title: {window_title}")  
 
-            # Construct the output image path
-            output_image = os.path.join(media_folder, f"{os.path.basename(video_file)}_screenshot.jpg")
-
+            # Construct the golden image path
+            golden_image_path = os.path.join(golden_folder, f"{video_name}_golden.jpg")
+            logger.debug(f"Golden image path: {golden_image_path}")
+         
             # Capture the VLC window screenshot asynchronously
-            capture_screenshot_async(window_title, output_image)
+            capture_screenshot_async(window_title, golden_image_path)
 
             # Start VLC and play the video
             result = start_vlc_with_options(
@@ -172,12 +153,6 @@ if __name__ == "__main__":
                 start_time=0,
                 stop_time=6,  # Play for 6 seconds
                 max_screen=True
-               # Set to True if you want to test grayscale
             )
 
             print(result)
-
-    #     # Call image ImageComare.py not that the screen shots have been captured.
-    logger.debug("All videos have been processed, now calling ImageCompare.py...")
-    call_image_compare()
-
