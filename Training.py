@@ -11,7 +11,7 @@ def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overla
     """
     Launches VLC Media Player with the specified options and plays the given file.
 
-    Note: The script requires you to not interact with the system otherqwise it may interfere with identifying the VLC window for screenshot capture.
+    Note: The script requires you to not interact with the system otherwise it may interfere with identifying the VLC window for screenshot capture.
     """
     try:
         # Check if the file exists
@@ -72,21 +72,23 @@ def start_vlc_with_options(file_path, no_video=False, grayscale=False, no_overla
 
 def capture_screenshot_async(window_title, output_image):
     """
-    Captures a screenshot asynchronously after 3 seconds.
+    Captures a screenshot asynchronously after 5 seconds.
     """
+    logger.debug(f"Preparing to capture screenshot for window: {window_title}, output image: {output_image}")
+
     def capture():
         time.sleep(5)  # Wait for 5 seconds
         capture_result = capture_window_still(window_title, output_image)
-        logger.debug(capture_result)
+        logger.debug(f"Screenshot capture result: {capture_result}")
         print(capture_result)
 
     # Start the capture in a separate thread
     threading.Thread(target=capture).start()
 
 if __name__ == "__main__":
-    LogFileName = "Logging_Training.log"  # Initialize logging (optional, if you have FrameworkLogging set up)
+    LogFileName = "Logging_Training.log"
 
-    # Remove the old log file before starting a test run.
+    # Remove the old log file before starting a test run
     if os.path.exists(LogFileName):
         os.remove(LogFileName)
 
@@ -96,11 +98,13 @@ if __name__ == "__main__":
     logger.debug("Starting Training script...")
 
     current_path = os.getcwd()
+    logger.debug(f"Current working directory: {current_path}")
+
     # Path to the Media folder
-    media_folder = os.path.join(current_path, "Media")  # Use os.path.join to construct the path
+    media_folder = os.path.join(current_path, "Media")
     logger.debug(f"Media folder set to: {media_folder}")
 
-    # Path to the Golden Images folder under the Media folder
+    # Path to the Golden Images folder
     golden_folder = os.path.join(media_folder, "Golden_Images")
     os.makedirs(golden_folder, exist_ok=True)
     logger.debug(f"Golden Images folder set to: {golden_folder}")
@@ -114,45 +118,37 @@ if __name__ == "__main__":
     else:
         logger.debug("No video files found in the specified media folder.")
 
-    # Check if any video files were found
-    if not video_files:
-        print(f"No video files found in the folder: {media_folder}")
-        logger.warning(f"No video files found in the folder: {media_folder}")
-    else:
-        print(f"Found {len(video_files)} video files in the folder: {media_folder}")
-        logger.debug(f"Found {len(video_files)} video files in the folder: {media_folder}")
-
-        # Process each video file
-        for video_file in video_files:
-            print(f"Processing video: {video_file}")
-            logger.debug(f"Processing video: {video_file}")
-
-            # Extract the video name from the file path
-            video_name = os.path.splitext(os.path.basename(video_file))[0]
-
-            # Run the video once and capture a golden screenshot
-            print(f"Playing video {video_name} to capture golden image")
-            logger.debug(f"Playing video {video_name} to capture golden image")
-
-            # Construct the VLC window title dynamically
-            window_title = f"{os.path.basename(video_file)} - VLC media player"
-            logger.debug(f"Looking for VLC title: {window_title}")  
-
-            # Construct the golden image path
-            golden_image_path = os.path.join(golden_folder, f"{video_name}_golden.jpg")
-            logger.debug(f"Golden image path: {golden_image_path}")
-         
-            # Capture the VLC window screenshot asynchronously
-            capture_screenshot_async(window_title, golden_image_path)
-
-            # Start VLC and play the video
-            result = start_vlc_with_options(
-                file_path=video_file,
-                no_video=False,
-                grayscale=True,
-                start_time=0,
-                stop_time=6,  # Play for 6 seconds
-                max_screen=True
-            )
-
-            print(result)
+    # Process each video file
+    for video_file in video_files:
+        print(f"Processing video: {video_file}")
+        logger.debug(f"Processing video: {video_file}")
+    
+        # Extract the video name without the extension
+        file_name = os.path.splitext(os.path.basename(video_file))[0]  # Remove the file extension
+    
+        # Run the video once and capture a golden screenshot
+        print(f"Playing video {file_name} to capture golden image")
+        logger.debug(f"Playing video {file_name} to capture golden image")
+    
+        # Construct the VLC window title dynamically
+        window_title = f"{os.path.basename(video_file)} - VLC media player"
+        logger.debug(f"Looking for VLC title: {window_title}")
+    
+        # Construct the golden image path with .jpg extension
+        golden_image_path = os.path.join(golden_folder, f"{file_name}.jpg")
+        logger.debug(f"Golden image path: {golden_image_path}")
+    
+        # Capture the VLC window screenshot asynchronously
+        capture_screenshot_async(window_title, golden_image_path)
+    
+        # Start VLC and play the video
+        result = start_vlc_with_options(
+            file_path=video_file,
+            no_video=False,
+            grayscale=True,
+            start_time=0,
+            stop_time=6,  # Play for 6 seconds
+            max_screen=True
+        )
+    
+        print(result)
