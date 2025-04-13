@@ -1,0 +1,1 @@
+Shutdown /r /fw /t 0 
