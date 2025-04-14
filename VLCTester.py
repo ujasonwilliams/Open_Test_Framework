@@ -4,7 +4,29 @@ import threading
 import time
 from Library.FrameworkLogging import CustomLogger
 from Library.FunctionLibrary import scan_for_video_files
-from Library.Capture import capture_window_still  # Import the capture function
+from Library.Capture import capture_window_still
+from Library.Battery import get_charger_state  # Import the charger state function
+from Library.Battery import set_power_settings_never_sleep  # Import the power settings function
+
+
+def preflight_check():
+    """
+    Checks if the charger is connected before starting the test.
+    If disconnected, prompts the user to continue or exit.
+    """
+    logger.debug("Performing preflight check for charger connection...")
+    charger_connected = get_charger_state()
+
+    if not charger_connected:
+        logger.warning("Charger is not connected.")
+        user_input = input("The charger is not connected. Do you want to continue? (yes/no): ").strip().lower()
+        if user_input != "yes":
+            logger.info("User chose to exit the test due to charger disconnection.")
+            exit(1)
+        else:
+            logger.info("User chose to continue despite charger disconnection.")
+    else:
+        logger.debug("Charger is connected. Preflight check passed.")
 
 def call_image_compare():
     """
@@ -125,6 +147,7 @@ def capture_screenshot_async(window_title, output_image):
 if __name__ == "__main__":
     LogFileName = "Logging_VLCTester.log"
 
+
     # Remove the old log file before starting a test run.
     if os.path.exists(LogFileName):
         os.remove(LogFileName)
@@ -136,6 +159,12 @@ if __name__ == "__main__":
 
     current_path = os.getcwd()
     logger.debug(f"Current working directory: {current_path}")
+
+    preflight_check()
+    logger.info("Preflight check completed.")
+
+    set_power_settings_never_sleep()  # Set power settings to never sleep
+    logger.info("Setting power settings to never sleep...")    
 
     # Path to the Media folder
     media_folder = os.path.join(current_path, "Media")

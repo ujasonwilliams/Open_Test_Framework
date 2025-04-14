@@ -13,7 +13,7 @@ set drive=%1
 echo Destination path: %drive%
 
 REM Copy files to the specified destination
-xcopy . %drive% /sid /exclude:t-exclude.list
+xcopy . %drive% /sid /exclude:exclude.list
 
 REM Notify the user
 echo Files have been copied to %drive%.

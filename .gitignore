@@ -1,3 +1,4 @@
 # Ignore the __pycache__ folder
 __pycache__/
 *.log
+measurements.txt
