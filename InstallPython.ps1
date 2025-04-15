@@ -1,16 +1,78 @@
-# This PowerShell script installs Python 3.13.3 on Windows, installs dependencies from Requirements.dat, and sets the Python path.
+# This script automates downloading and installing Visual Studio Build Tools and Python.
 
-$LogFile = Join-Path $PSScriptRoot "InstallPython.log"
+$LogFile = Join-Path $PSScriptRoot "InstallEnvironment.log"
 function Log {
     param (
         [string]$Message
     )
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+
+    # Get the calling script and line number
     $CallStack = Get-PSCallStack | Select-Object -Skip 1 -First 1  # Skip the Log function itself
+    $ModuleName = $CallStack.ScriptName
     $LineNumber = $CallStack.ScriptLineNumber
-    $LogMessage = "$Timestamp - Line $LineNumber - $Message"
+
+    # Format the log message
+    $LogMessage = "$Timestamp - Module: $ModuleName - Line: $LineNumber - $Message"
     Write-Host $LogMessage
     Add-Content -Path $LogFile -Value $LogMessage
+}
+
+# Function to download a file
+function Download-File {
+    param (
+        [string]$DownloadUrl,
+        [string]$SavePath
+    )
+
+    if (-Not (Test-Path $SavePath)) {
+        Log "Downloading from $DownloadUrl..."
+        try {
+            Invoke-WebRequest -Uri $DownloadUrl -OutFile $SavePath -UseBasicParsing
+            Log "Downloaded successfully to $SavePath."
+        } catch {
+            Log "Failed to download from $DownloadUrl"
+            exit 1
+        }
+    } else {
+        Log "File already exists at $SavePath. Skipping download."
+    }
+}
+
+# Function to install Visual Studio Build Tools
+function Install-BuildTools {
+    param (
+        [string]$InstallerPath
+    )
+
+    # Check if Visual Studio Build Tools are already installed
+    $VSPath = "C:\BuildTools\Common7\Tools\vsdevcmd.bat"
+    if (Test-Path $VSPath) {
+        Log "Visual Studio Build Tools are already installed. Skipping installation."
+        return
+    }
+
+    if (-Not (Test-Path $InstallerPath)) {
+        Log "Build Tools installer not found at $InstallerPath."
+        exit 1
+    }
+
+    Log "Installing Visual Studio Build Tools silently from $InstallerPath..."
+
+    # Install required components (C++ Build Tools, Windows 10 SDK, CMake)
+    $Arguments = "--quiet --wait --norestart --nocache --installPath C:\BuildTools --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional"
+
+    # Start the process and capture the exit code
+    $Process = Start-Process -FilePath $InstallerPath -ArgumentList $Arguments -Wait -PassThru
+    $ExitCode = $Process.ExitCode
+    Log "Build Tools installer exited with code $ExitCode."
+
+    if ($ExitCode -ne 0) {
+        Log "Build Tools installation failed with exit code $ExitCode."
+        exit 1
+    }
+
+    Log "Visual Studio Build Tools installed successfully."
 }
 
 # Function to install Python
@@ -20,21 +82,15 @@ function Install-Python {
         [string]$InstallDir
     )
 
-    if (-Not $PythonInstallerPath) {
-        Log "Testing Python installer path is not set. Please ensure the installer path is specified."
-        Log "Nothing found at $PythonInstallerPath. Stopping script."
-        exit 1
+    # Check if Python is already installed
+    $PythonExe = Join-Path $InstallDir "python.exe"
+    if (Test-Path $PythonExe) {
+        Log "Python is already installed at $InstallDir. Skipping installation."
+        return
     }
 
     if (-Not (Test-Path $PythonInstallerPath)) {
         Log "Python installer not found at $PythonInstallerPath."
-        Log "Please ensure the installer is present at the specified path."
-        exit 1
-    }
-
-    if (-Not $InstallDir) {
-        Log "InstallDir is not set. Please ensure the target installation directory is specified."
-        Log "Nothing found at $InstallDir. Stopping script."
         exit 1
     }
 
@@ -52,7 +108,6 @@ function Install-Python {
     }
 
     Log "Checking if Python was installed at $InstallDir..."
-    $PythonExe = Join-Path $InstallDir "python.exe"
     if (Test-Path $PythonExe) {
         Log "Python installed successfully at $PythonExe."
     } else {
@@ -61,94 +116,44 @@ function Install-Python {
     }
 }
 
-# Function to install dependencies from Requirements.dat
-function Install-Dependencies {
-    param (
-        [string]$PythonExe,
-        [string]$RequirementsFile
-    )
-
-    if (-Not (Test-Path $PythonExe)) {
-        Log "Python executable not found at $PythonExe. Cannot install dependencies."
-        exit 1
-    }
-
-    if (-Not (Test-Path $RequirementsFile)) {
-        Log "Requirements file not found at $RequirementsFile. Skipping dependency installation."
-        return
-    }
-
-    Log "Installing dependencies from $RequirementsFile..."
-    & $PythonExe -m pip install -r $RequirementsFile --trusted-host pypi.org --trusted-host files.pythonhosted.org
-    if ($LASTEXITCODE -ne 0) {
-        Log "Failed to install dependencies from $RequirementsFile."
-        exit 1
-    }
-    Log "Dependencies installed successfully from $RequirementsFile."
-}
-
-
-# Function to set Python path and verify it
-function Set-PythonPath {
-    param (
-        [string]$InstallDir
-    )
-
-    $PythonPath = "$InstallDir;$InstallDir\Scripts"
-    Log "Adding Python to the PATH environment variable: $PythonPath"
-
-    # Update the PATH environment variable for the current session
-    $env:Path = "$PythonPath;$env:Path"
-
-    # Update the PATH environment variable permanently
-    $CurrentPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
-
-    Log "Verifying if Python path is already in the PATH environment variable..."
-    if ($CurrentPath -notlike "*$InstallDir*") {
-        [Environment]::SetEnvironmentVariable("Path", "$PythonPath;$CurrentPath", [EnvironmentVariableTarget]::Machine)
-        Log "Python path added to the PATH environment variable permanently."
-    } else {
-        Log "Python path is already present in the PATH environment variable."
-    }
-
-}
-
 # Main Execution
-Log "Starting Python installation process..."
+Log "Starting environment setup process..."
 
 # Initialize required variables
+$BuildToolsDownloadUrl = "https://aka.ms/vs/17/release/vs_buildtools.exe"
+$BuildToolsInstallerPath = Join-Path $PSScriptRoot "vs_buildtools.exe"
+
+$PythonDownloadUrl = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe"
 $PythonInstallerPath = Join-Path $PSScriptRoot "Tools\python-3.13.3-amd64.exe"
-Log "Python installer path: $PythonInstallerPath"
-if (-Not (Test-Path $PythonInstallerPath)) {
-    Log "Python installer not found at $PythonInstallerPath."
-    exit 1
-}
-
 $InstallDir = "C:\Program Files\Python3.13.3"
-Log "Installation directory: $InstallDir"
-if (-Not (Test-Path $InstallDir)) {
-    Log "Installation directory does not exist. Creating directory: $InstallDir"
-    New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
-} else {
-    Log "Installation directory already exists: $InstallDir"
-}
-
 $RequirementsFile = Join-Path $PSScriptRoot "Requirement.dat"
-Log "Requirements file path: $RequirementsFile"
-if (-Not (Test-Path $RequirementsFile)) {
-    Log "Requirements file not found at $RequirementsFile."
-    exit 1
-}
 
-Log "Starting Python installation..."
-Log "Calling Install-Python with parameters:"
-Log "  PythonInstallerPath: $PythonInstallerPath"
-Log "  InstallDir: $InstallDir"
+# Download and install Visual Studio Build Tools
+Download-File -DownloadUrl $BuildToolsDownloadUrl -SavePath $BuildToolsInstallerPath
+Install-BuildTools -InstallerPath $BuildToolsInstallerPath
+
+# Download and install Python
+Download-File -DownloadUrl $PythonDownloadUrl -SavePath $PythonInstallerPath
 Install-Python -PythonInstallerPath $PythonInstallerPath -InstallDir $InstallDir
 
-# Install dependencies
+# Add Python to the system PATH
+Log "Adding Python to the system PATH..."
+$PythonPath = "$InstallDir;$InstallDir\Scripts"
+Log "Python path: $PythonPath"
+
+# Update the system PATH
+[Environment]::SetEnvironmentVariable("Path", "$PythonPath;$env:Path", [EnvironmentVariableTarget]::Machine)
+
+# Verify the update
+$UpdatedPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
+Log "Updated system PATH: $UpdatedPath"
+
+# Refresh PATH in the current session
+$env:Path = $UpdatedPath
+Log "Refreshed PATH in the current session: $env:Path"
+
+# Install Python dependencies
 $PythonExe = Join-Path $InstallDir "python.exe"
-Log "Python executable path: $PythonExe"
 if (-Not (Test-Path $PythonExe)) {
     Log "Python executable not found at $PythonExe. Cannot install dependencies."
     exit 1
@@ -156,21 +161,12 @@ if (-Not (Test-Path $PythonExe)) {
     Log "Python executable found at $PythonExe."
 }
 
-Log "Calling Install-Dependencies with parameters:"
-Log "  PythonExe: $PythonExe"
-Log "  RequirementsFile: $RequirementsFile"
-Install-Dependencies -PythonExe $PythonExe -RequirementsFile $RequirementsFile
-
-# Set Python path
-Log "Setting the Python path..."
-Log "Calling Set-PythonPath with parameter:"
-Log "  InstallDir: $InstallDir"
-if (-Not (Test-Path $InstallDir)) {
-    Log "Installation directory does not exist. Cannot set Python path."
+Log "Installing dependencies from $RequirementsFile..."
+& $PythonExe -m pip install -r $RequirementsFile --trusted-host pypi.org --trusted-host files.pythonhosted.org
+if ($LASTEXITCODE -ne 0) {
+    Log "Failed to install dependencies from $RequirementsFile."
     exit 1
-} else {
-    Log "Installation directory exists: $InstallDir"
 }
-Set-PythonPath -InstallDir $InstallDir
+Log "Dependencies installed successfully from $RequirementsFile."
 
-Log "Python installation process completed successfully."
+Log "Environment setup process completed successfully."

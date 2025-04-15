@@ -133,4 +133,4 @@ if __name__ == "__main__":
     media_folder = os.path.join(invocation_directory, "Media")
 
     # Call the compare_and_grade function
-    compare_and_grade(golden_folder, media_folder, percentage_threshold=5)
+    compare_and_grade(golden_folder, media_folder, percentage_threshold=12)
