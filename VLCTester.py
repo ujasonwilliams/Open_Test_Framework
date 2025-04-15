@@ -180,7 +180,7 @@ if __name__ == "__main__":
         logger.debug(f"Found {len(video_files)} video files in the folder: {media_folder}")
 
         # Specify the number of test loops
-        test_loops = 3  # Change this value to specify the number of loops
+        test_loops = 1  # Change this value to specify the number of loops
         logger.debug(f"Running tests for {test_loops} loops.")
 
         for loop in range(1, test_loops + 1):

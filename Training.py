@@ -112,11 +112,13 @@ if __name__ == "__main__":
     # Get the list of video files
     video_files = scan_for_video_files(media_folder)
 
-    # Print the log file names to the debug log for verification
-    if video_files:
-        logger.debug(f"Video files found: {video_files}")
+    # Check if media files are present
+    if not video_files:
+        print("No media files found in the specified media folder.")
+        logger.debug("No media files found in the specified media folder.")
+        exit(1)  # Exit the script if no media files are found
     else:
-        logger.debug("No video files found in the specified media folder.")
+        logger.debug(f"Video files found: {video_files}")
 
     # Process each video file
     for video_file in video_files:
