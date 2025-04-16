@@ -115,6 +115,61 @@ function Install-Python {
         exit 1
     }
 }
+function Install-VLC {
+    param (
+        [string]$VlcDownloadUrl = "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+        [string]$InstallerPath = "$PSScriptRoot\vlc-3.0.21-win64.exe"
+    )
+
+    # Check if VLC is already installed
+    $VlcExePath = "C:\Program Files\VideoLAN\VLC\vlc.exe"
+    if (Test-Path $VlcExePath) {
+        Log "VLC Player is already installed at $VlcExePath. Skipping installation."
+        return
+    }
+
+    # Download the VLC installer
+    if (-Not (Test-Path $InstallerPath)) {
+        Log "Downloading VLC installer from $VlcDownloadUrl..."
+        try {
+            # Use Start-BitsTransfer for reliable downloads
+            Start-BitsTransfer -Source $VlcDownloadUrl -Destination $InstallerPath
+            Log "VLC installer downloaded successfully to $InstallerPath."
+        } catch {
+            Log "Failed to download VLC installer: $_"
+            exit 1
+        }
+    } else {
+        Log "VLC installer already exists at $InstallerPath. Skipping download."
+    }
+
+    # Verify the downloaded file size
+    if ((Get-Item $InstallerPath).Length -lt 1024) {
+        Log "Downloaded file is too small. The download might have failed."
+        exit 1
+    }
+
+    # Install VLC silently
+    Log "Installing VLC Player silently from $InstallerPath..."
+    $Process = Start-Process -FilePath $InstallerPath -ArgumentList "/S" -Wait -PassThru
+    $ExitCode = $Process.ExitCode
+    Log "VLC installer exited with code $ExitCode."
+
+    if ($ExitCode -ne 0) {
+        Log "VLC installation failed with exit code $ExitCode."
+        exit 1
+    }
+
+    # Verify installation
+    if (Test-Path $VlcExePath) {
+        Log "VLC Player installed successfully at $VlcExePath."
+    } else {
+        Log "VLC installation failed. Could not locate vlc.exe at $VlcExePath."
+        exit 1
+    }
+}
+
+
 
 # Main Execution
 Log "Starting environment setup process..."
@@ -168,5 +223,8 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 Log "Dependencies installed successfully from $RequirementsFile."
+
+Log "Installing VLC Player..."
+Install-VLC 
 
 Log "Environment setup process completed successfully."
