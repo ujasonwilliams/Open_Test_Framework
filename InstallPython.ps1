@@ -194,10 +194,13 @@ Install-Python -PythonInstallerPath $PythonInstallerPath -InstallDir $InstallDir
 # Add Python to the system PATH
 Log "Adding Python to the system PATH..."
 $PythonPath = "$InstallDir;$InstallDir\Scripts"
-Log "Python path: $PythonPath"
+Log "Python path to append: $PythonPath"
 
-# Update the system PATH
-[Environment]::SetEnvironmentVariable("Path", "$PythonPath;$env:Path", [EnvironmentVariableTarget]::Machine)
+# Get the current system PATH
+$CurrentPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
+
+# Append the Python path to the current PATH
+[Environment]::SetEnvironmentVariable("Path", "$CurrentPath;$PythonPath", [EnvironmentVariableTarget]::Machine)
 
 # Verify the update
 $UpdatedPath = [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine)
