@@ -169,7 +169,35 @@ function Install-VLC {
     }
 }
 
+function Update-Pip {
+    param (
+        [string]$PythonExePath
+    )
 
+    # Check if the Python executable exists
+    if (-Not (Test-Path $PythonExePath)) {
+        Log "Python executable not found at $PythonExePath. Cannot update pip."
+        exit 1
+    }
+
+    Log "Updating pip to the latest version using $PythonExePath..."
+    try {
+        # Run the command to update pip
+        $Process = Start-Process -FilePath $PythonExePath -ArgumentList "-m pip install --upgrade pip" -Wait -PassThru
+        $ExitCode = $Process.ExitCode
+        Log "pip update process exited with code $ExitCode."
+
+        if ($ExitCode -ne 0) {
+            Log "Failed to update pip. Exit code: $ExitCode."
+            exit 1
+        } else {
+            Log "pip updated successfully to the latest version."
+        }
+    } catch {
+        Log "An error occurred while updating pip: $_"
+        exit 1
+    }
+}
 
 # Main Execution
 Log "Starting environment setup process..."
@@ -209,6 +237,9 @@ Log "Updated system PATH: $UpdatedPath"
 # Refresh PATH in the current session
 $env:Path = $UpdatedPath
 Log "Refreshed PATH in the current session: $env:Path"
+
+Log "Updating pip to the latest version..."
+Update-Pip -PythonExePath $InstallDir\python.exe
 
 # Install Python dependencies
 $PythonExe = Join-Path $InstallDir "python.exe"
