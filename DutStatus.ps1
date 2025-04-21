@@ -1,4 +1,4 @@
-<#
+ <#
 .SYNOPSIS
     Displays system information including SMBIOS name, UEFI version, CPU type, SSD size, RAM size, last reboot time, and secure boot status.
 
