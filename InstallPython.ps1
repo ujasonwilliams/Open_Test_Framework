@@ -62,9 +62,25 @@ function Install-BuildTools {
     # Install required components (C++ Build Tools, Windows 10 SDK, CMake)
     $Arguments = "--quiet --wait --norestart --nocache --installPath C:\BuildTools --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional"
 
-    # Start the process and capture the exit code
-    $Process = Start-Process -FilePath $InstallerPath -ArgumentList $Arguments -Wait -PassThru
+    # Start the process
+    $Process = Start-Process -FilePath $InstallerPath -ArgumentList $Arguments -PassThru
+
+    # Monitor the process and display a progress bar
+    $ProgressActivity = "Installing Visual Studio Build Tools"
+    $ProgressPercent = 0
+    while (-not $Process.HasExited) {
+        # Simulate progress (you can adjust this logic based on actual installation time)
+        if ($ProgressPercent -lt 100) {
+            $ProgressPercent += 1
+        }
+
+        Write-Progress -Activity $ProgressActivity -Status "Progress: $ProgressPercent%" -PercentComplete $ProgressPercent
+        Start-Sleep -Milliseconds 500
+    }
+
+    # Capture the exit code
     $ExitCode = $Process.ExitCode
+    Write-Progress -Activity $ProgressActivity -Status "Completed" -PercentComplete 100 -Completed
     Log "Build Tools installer exited with code $ExitCode."
 
     if ($ExitCode -ne 0) {
@@ -206,7 +222,7 @@ Log "Starting environment setup process..."
 $BuildToolsDownloadUrl = "https://aka.ms/vs/17/release/vs_buildtools.exe"
 $BuildToolsInstallerPath = Join-Path $PSScriptRoot "vs_buildtools.exe"
 
-$PythonDownloadUrl = "https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe"
+$PythonDownloadUrl = "https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe"
 $PythonInstallerPath = Join-Path $PSScriptRoot "Tools\python-3.13.3-amd64.exe"
 $InstallDir = "C:\Program Files\Python3.13.3"
 $RequirementsFile = Join-Path $PSScriptRoot "Requirement.dat"
@@ -262,3 +278,16 @@ Log "Installing VLC Player..."
 Install-VLC 
 
 Log "Environment setup process completed successfully."
+
+$WallPaperScriptPath = Join-Path $PSScriptRoot "WallPaper.ps1"
+if (Test-Path $WallPaperScriptPath) {
+    Log "Calling WallPaper.ps1 script to set the desktop wallpaper..."
+    & $WallPaperScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        Log "Failed to execute WallPaper.ps1 script."
+        exit 1
+    }
+    Log "WallPaper.ps1 script executed successfully."
+} else {
+    Log "WallPaper.ps1 script not found at $WallPaperScriptPath. Skipping wallpaper setup."
+}
