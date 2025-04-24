@@ -73,7 +73,7 @@ $ElapsedTime = Measure-Command {
         } else {
             # Copy files
             Write-Host "Copying file: $RelativePath" -ForegroundColor Green
-            New-Item -ItemType Directory -Path (Split-Path $DestinationFile) -Force | Out-Null
+            #New-Item -ItemType Directory -Path (Split-Path $DestinationFile) -Force | Out-Null
             Copy-Item -Path $_.FullName -Destination $DestinationFile -Force
         }
     }
