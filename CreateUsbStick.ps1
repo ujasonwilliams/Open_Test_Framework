@@ -1,17 +1,17 @@
 <#
 .SYNOPSIS
-    Copies all files and subdirectories from the current folder to a USB stick.
+    Copies all files and subdirectories from the current folder to a USB stick into a folder named "OpenFramework".
 
 .DESCRIPTION
     This script identifies the USB stick by its drive letter and copies all files and subdirectories 
-    from the current folder and below to the USB stick. Files matching the skip list are excluded, 
-    except for the `__pycache__` folder, which is explicitly included.
+    from the current folder and below to a folder named "OpenFramework" on the USB stick. Files matching 
+    the skip list are excluded, except for the `__pycache__` folder, which is explicitly included.
 
 .NOTES
     File Name: CreateUSBStick.ps1
     Author: Jaswi
     Date: 2025
-    Version: 1.5
+    Version: 1.6
     Requires: PowerShell 5.1 or later
 #>
 
@@ -31,9 +31,16 @@ if (-not $RemovableDrive) {
 
 # Define the source and destination paths
 $SourcePath = (Get-Location).Path.TrimEnd("\")  # Ensure no trailing backslash
-$DestinationPath = $RemovableDrive.DeviceID.TrimEnd("\")  # Ensure no trailing backslash
+$DestinationRoot = $RemovableDrive.DeviceID.TrimEnd("\")  # Ensure no trailing backslash
+$DestinationPath = Join-Path -Path $DestinationRoot -ChildPath "OpenFramework"  # Create "OpenFramework" folder
 
-Write-Host "Detected USB drive: $DestinationPath" -ForegroundColor Green
+# Create the "OpenFramework" folder if it doesn't exist
+if (-not (Test-Path -Path $DestinationPath)) {
+    New-Item -ItemType Directory -Path $DestinationPath | Out-Null
+    Write-Host "Created folder: $DestinationPath" -ForegroundColor Green
+}
+
+Write-Host "Detected USB drive: $DestinationRoot" -ForegroundColor Green
 
 # Define the skip lists
 $SkipExtensions = @(".log", ".txt", ".code-workspace", ".gitignore")  # File extensions to skip
@@ -79,5 +86,5 @@ $ElapsedTime = Measure-Command {
     }
 }
 
-Write-Host "All files have been successfully copied to the USB drive, excluding skipped files." -ForegroundColor Green
+Write-Host "All files have been successfully copied to the USB drive in the 'OpenFramework' folder, excluding skipped files." -ForegroundColor Green
 Write-Host "Time taken to copy files: $($ElapsedTime.TotalSeconds) seconds" -ForegroundColor Yellow
