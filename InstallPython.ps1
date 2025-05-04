@@ -32,6 +32,7 @@ function Download-File {
             Log "Downloaded successfully to $SavePath."
         } catch {
             Log "Failed to download from $DownloadUrl"
+            Log "Check the internet connection or the URL."
             exit 1
         }
     } else {
@@ -223,8 +224,8 @@ $BuildToolsDownloadUrl = "https://aka.ms/vs/17/release/vs_buildtools.exe"
 $BuildToolsInstallerPath = Join-Path $PSScriptRoot "vs_buildtools.exe"
 
 $PythonDownloadUrl = "https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe"
-$PythonInstallerPath = Join-Path $PSScriptRoot "Tools\python-3.13.3-amd64.exe"
-$InstallDir = "C:\Program Files\Python3.13.3"
+$PythonInstallerPath = Join-Path $PSScriptRoot "Tools\python-3.12.9-amd64.exe"
+$InstallDir = "C:\Program Files\Python3.12.9"
 $RequirementsFile = Join-Path $PSScriptRoot "Requirement.dat"
 
 # Download and install Visual Studio Build Tools
@@ -277,7 +278,19 @@ Log "Dependencies installed successfully from $RequirementsFile."
 Log "Installing VLC Player..."
 Install-VLC 
 
-Log "Environment setup process completed successfully."
+log "Installing Notepad++..."
+Log "Downloading Notepad++ installer..."
+$InstallerPath = "$PSScriptRoot\npp-installer.exe"
+Invoke-WebRequest -Uri "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.7/npp.8.7.7.Installer.exe" -OutFile $InstallerPath
+
+Log "Installing Notepad++ silently..."
+Start-Process -FilePath $InstallerPath -ArgumentList "/S" -Wait
+if ($LASTEXITCODE -ne 0) {
+    Log "Failed to install Notepad++ using the direct installer. Exit code: $LASTEXITCODE"
+    exit 1
+}
+Log "Notepad++ installed successfully using the direct installer."
+
 
 $WallPaperScriptPath = Join-Path $PSScriptRoot "WallPaper.ps1"
 if (Test-Path $WallPaperScriptPath) {
@@ -291,3 +304,5 @@ if (Test-Path $WallPaperScriptPath) {
 } else {
     Log "WallPaper.ps1 script not found at $WallPaperScriptPath. Skipping wallpaper setup."
 }
+
+Log "Environment setup process completed successfully."

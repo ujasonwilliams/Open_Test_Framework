@@ -84,8 +84,10 @@ def compare_and_grade(golden_folder, media_folder, percentage_threshold=5):
     """
     logger.info(f"Starting comparison between golden images in '{golden_folder}' and screenshots in '{media_folder}'.")
 
-    # Path to the results file
-    results_file = os.path.join(os.getcwd(), "Measurements.txt")
+    # Generate a unique filename for the results file
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%H%M%S")  # Format: HHMMSS
+    results_file = os.path.join(os.getcwd(), f"Measurement{timestamp}.txt")
     
     # Write the header to the results file in CSV format
     with open(results_file, "a") as f:
@@ -119,7 +121,6 @@ def compare_and_grade(golden_folder, media_folder, percentage_threshold=5):
 
     logger.info("Comparison and grading completed.")
     logger.info(f"Results written to {results_file}")
-
 
 if __name__ == "__main__":
     # Get the invocation directory
