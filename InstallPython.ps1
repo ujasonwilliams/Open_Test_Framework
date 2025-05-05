@@ -291,7 +291,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 Log "Notepad++ installed successfully using the direct installer."
 
-
 $WallPaperScriptPath = Join-Path $PSScriptRoot "WallPaper.ps1"
 if (Test-Path $WallPaperScriptPath) {
     Log "Calling WallPaper.ps1 script to set the desktop wallpaper..."
@@ -306,3 +305,19 @@ if (Test-Path $WallPaperScriptPath) {
 }
 
 Log "Environment setup process completed successfully."
+
+Log "Start a new Command Prompt window with correct ENV variables."
+Log "Getting the current PowerShell process to kill it."
+$ProcessName = "cmd.exe"
+$Process = Get-Process | Where-Object { $_.Path -like "*$ProcessName*" }
+
+Log "Starting a new Command Prompt window with the correct environment variables..."
+Start-Process -FilePath "cmd.exe" -ArgumentList "/k cd C:\t"
+
+Log "Kill the current PowerShell process..."
+if ($Process) {
+    Log "Killing process: $ProcessName"
+    Stop-Process -Id $Process.Id -Force
+} else {
+    Log "Process $ProcessName not found. No action taken."
+}
