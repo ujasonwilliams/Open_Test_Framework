@@ -13,7 +13,7 @@ IF NOT EXIST "C:\t" (
 
 REM Copy all files and subfolders to C:\t
 echo Copying files to C:\t...
-xcopy * "C:\t\" /E /H /C /I
+xcopy * "C:\t\" /E /H /C /I /Y
 
 REM Notify the user
 echo All files have been copied to C:\t.
